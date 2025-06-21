@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spare Parts Prices</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+      };
+    </script>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
+          Spare Parts
+        </h1>
+        <button
+          id="theme-toggle"
+          class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-transform duration-300 hover:scale-110"
+        >
+          <svg
+            id="theme-toggle-dark-icon"
+            class="w-6 h-6 hidden"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+            ></path>
+          </svg>
+          <svg
+            id="theme-toggle-light-icon"
+            class="w-6 h-6 hidden"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.121-3.536a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM4.05 16.95a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm14 0a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM4.95 4.95a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM15.05 4.95a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0z"
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <div id="loading-spinner" class="flex justify-center items-center py-10">
+        <div
+          class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"
+        ></div>
+      </div>
+
+      <div
+        id="parts-container"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"
+      >
+        <!-- Parts will be inserted here by JavaScript -->
+      </div>
+    </div>
+
+    <script>
+      // Theme toggle logic
+      const themeToggleBtn = document.getElementById("theme-toggle");
+      const themeToggleDarkIcon = document.getElementById(
+        "theme-toggle-dark-icon"
+      );
+      const themeToggleLightIcon = document.getElementById(
+        "theme-toggle-light-icon"
+      );
+
+      if (
+        localStorage.getItem("color-theme") === "dark" ||
+        (!("color-theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+        themeToggleLightIcon.classList.remove("hidden");
+      } else {
+        document.documentElement.classList.remove("dark");
+        themeToggleDarkIcon.classList.remove("hidden");
+      }
+
+      themeToggleBtn.addEventListener("click", function () {
+        themeToggleDarkIcon.classList.toggle("hidden");
+        themeToggleLightIcon.classList.toggle("hidden");
+
+        if (localStorage.getItem("color-theme")) {
+          if (localStorage.getItem("color-theme") === "light") {
+            document.documentElement.classList.add("dark");
+            localStorage.setItem("color-theme", "dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+            localStorage.setItem("color-theme", "light");
+          }
+        } else {
+          if (document.documentElement.classList.contains("dark")) {
+            document.documentElement.classList.remove("dark");
+            localStorage.setItem("color-theme", "light");
+          } else {
+            document.documentElement.classList.add("dark");
+            localStorage.setItem("color-theme", "dark");
+          }
+        }
+      });
+
+      // Fetching data logic
+      document.addEventListener("DOMContentLoaded", function () {
+        const loadingSpinner = document.getElementById("loading-spinner");
+        const partsContainer = document.getElementById("parts-container");
+
+        fetch(
+          "https://corsproxy.io/?https://tasca-price-api.vercel.app/api/price"
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            loadingSpinner.classList.add("hidden");
+            partsContainer.classList.remove("hidden");
+
+            data.forEach((part, index) => {
+              const partElement = document.createElement("div");
+              partElement.classList.add(
+                "bg-white",
+                "dark:bg-gray-800",
+                "rounded-lg",
+                "shadow-md",
+                "flex",
+                "flex-col",
+                "justify-between",
+                "overflow-hidden",
+                "transition-all",
+                "duration-500",
+                "ease-in-out",
+                "hover:shadow-xl",
+                "hover:scale-105",
+                "opacity-0",
+                "transform",
+                "translate-y-5"
+              );
+
+              const imageHTML = part.imageUrl
+                ? `<img src="${part.imageUrl}" alt="${part.title}" class="w-full h-[325px] object-cover">`
+                : "";
+
+              partElement.innerHTML = `
+                            <div>
+                                ${imageHTML}
+                                <div class="p-6">
+                                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white">${part.title}</h2>
+                                    <p class="text-gray-600 dark:text-gray-300 mt-2">Part Number: ${part.partNumber}</p>
+                                    <p class="text-2xl font-bold text-indigo-600 mt-4">${part.price}</p>
+                                </div>
+                            </div>
+                            <div class="p-6 pt-0">
+                                <a href="${part.url}" target="_blank" class="w-full inline-block text-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300">
+                                    View Product
+                                </a>
+                            </div>
+                        `;
+              partsContainer.appendChild(partElement);
+
+              setTimeout(() => {
+                partElement.classList.remove("opacity-0", "translate-y-5");
+              }, index * 100);
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching spare parts data:", error);
+            loadingSpinner.classList.add("hidden");
+            partsContainer.classList.remove("hidden");
+            partsContainer.innerHTML =
+              '<p class="text-center text-red-500 col-span-full">Failed to load spare parts data. Please try again later.</p>';
+          });
+      });
+    </script>
+  </body>
+</html>
